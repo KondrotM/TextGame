@@ -14,20 +14,29 @@ class player:
         self.speed = speed
 
     def attack(self, other):
-        option = input("Select attack:\n *Chop \n *Slash \n *Lunge \n").upper()
+        option = input("SELECT ATTACK:\n *CHOP \n *SLASH \n *LUNGE \n").upper()
         print(option,"on",other)
+
+    def printstats(self):
+        print("YOUR STATS:")
+        print("HEALTH:", player.health)
+        print("DEFENSE:", player.defense)
+        print("STRENGTH:", player.strength)
+        print("SPEED:", player.speed)
 
     def upgrade(self):
         option = ""
         while option not in ("DEFENSE","STRENGTH","SPEED","DEF","STR","SPD"):
             option = input("CHOOSE WHAT STAT TO UPGRADE \n *DEFENSE \n *STRENGTH \n *SPEED \n").upper()
-            if option == "DEFENSE" or "DEF":
+            if option in ("DEFENSE","DEF"):
                 player.defense += 1
-            elif option == "STRENGTH" or "STR":
+            elif option in ("STRENGTH","STR"):
                 player.strength += 1
-            elif option == "SPEED" or "SPD  ":
+            elif option in ("SPEED","SPD"):
                 player.speed += 1
-
+            else:
+                print("INVALID OPTION")
+        player.health += 1
 
 
 
@@ -36,5 +45,5 @@ player=player(10,10,10,10)
 orc=enemy("orc",5,10,"A fierce orc")
 #player.attack(orc.name)
 player.upgrade()
-print(player.defense)
-print(orc.desc)
+player.printstats()
+#print(orc.desc)
