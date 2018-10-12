@@ -1,17 +1,23 @@
+import random
 
-class enemy:
-    def __init__(self,name,strength,health,desc):
+class Enemy:
+    def __init__(self,name,strength,health,desc,weakness,exp):
         self.name = name
         self.strength = strength
         self.health = health
         self.desc = desc
+        self.weakness = weakness
+        self.exp = exp
 
-class player:
-    def __init__(self,health, defense, strength, speed):
+class Player:
+    def __init__(self,health, defense, strength, speed, level, exp, alive):
         self.health = health
         self.defense = defense
         self.strength = strength
         self.speed = speed
+        self.level = level
+        self.exp = exp
+        self.alive = alive
 
     def attack(self, other):
         option = input("SELECT ATTACK:\n *CHOP \n *SLASH \n *LUNGE \n").upper()
@@ -39,11 +45,67 @@ class player:
         player.health += 1
 
 
+def battle(player, enemy):
+        choices = ["INSPECT","SLASH","CHOP","LUNGE"]
+        print("YOU HAVE ENCOUNTERED AN",enemy.name)
+        pHealth = player.health * 10
+        while enemy.health > 0 and pHealth > 0:
+            turn = True
+            while turn:
+                choice = ""
+                while choice not in choices:
+                    print(choices)
+                    choice = input("CHOOSE YOUR ACTION \n")
+                    choice = choice.upper()
+                if choice == "INSPECT":
+                    print(orc.desc)
+                    turn = False
+                if choice in ["SLASH","CHOP","LUNGE"]:
+                    multiplier = random.randint(80,120)/100
+                    damage = player.strength*multiplier
+                    if choice == enemy.weakness:
+                        damage = damage*1.5
+                    damage = round(damage,2)
+                    enemy.health = enemy.health - damage
+                    enemy.health = round(enemy.health,2)
+                    print("ENEMY TOOK ",damage," DAMAGE")
+                    print("ENEMY HAS ",enemy.health," HEALTH LEFT")
+                    turn = False
+            print("---ENEMY TURN---")
+            multiplier = random.randint(80, 120) / 100
+            damage = enemy.strength * multiplier
+            pHealth -= damage
+            print("THE ",enemy.name," HITS YOU FOR ",damage," DAMAGE")
+            print("YOU HAVE ",pHealth," HEALTH REMAINING")
+        if pHealth <= 0:
+            print("YOU ARE DEAD")
+            player.alive = False
+        elif enemy.health <= 0:
+            print("VICTORY")
+            player.exp += enemy.exp
+            if player.exp >= 45+(player.level*5):
+                print("LEVEL UP")
+                player.level += 1
+                player.exp -= 45+(player.level*5)
+                player.upgrade()
+                player.printstats()
+            else:
+                print("YOU HAVE GAINED ", enemy.exp, " EXP")
+                print("YOU HAVE ", player.exp, "/", 45+(player.level*5), "EXP")
 
 
-player=player(10,10,10,10)
-orc=enemy("orc",5,10,"A fierce orc")
+
+
+
+
+
+
+
+player = Player(10,10,10,10,1,0,True)
+while player.alive:
+    orc = Enemy("ORC", 5, 50, "A FIERCE ORC. WEAK TO SLASH", "SLASH", 25)
+    input("PREPARE FOR BATTLE")
+    battle(player, orc)
+
 #player.attack(orc.name)
-player.upgrade()
-player.printstats()
 #print(orc.desc)
