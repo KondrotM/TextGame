@@ -1,5 +1,7 @@
 import random
 
+map = [["x","spawn","x","x"],["sword","enemy","x","x"],["x","enemy","enemy","potion"],["x","puzzle","x","x","x"]]
+
 class Enemy:
     def __init__(self,name,strength,health,desc,weakness,exp):
         self.name = name
@@ -9,8 +11,16 @@ class Enemy:
         self.weakness = weakness
         self.exp = exp
 
+class Room:
+    def __init__(self,name,style,x,y):
+        self.name = name
+        self.style = style
+        self.x = x
+        self.y = y
+
+
 class Player:
-    def __init__(self,health, defense, strength, speed, level, exp, alive):
+    def __init__(self,health, defense, strength, speed, level, exp, alive,x,y):
         self.health = health
         self.defense = defense
         self.strength = strength
@@ -18,7 +28,46 @@ class Player:
         self.level = level
         self.exp = exp
         self.alive = alive
+        self.x = x
+        self.y = y
 
+    def move(self):
+        option = ""
+        oldpos = [player.y,player.x]
+        while option not in ["n","e","s","w"]: #while option not in Room.choices.
+            #rooms and enemies should probably have their own .py files and i import them later
+            option = input("CHOOSE WHAT TO DO")
+            option=option.lower()
+            if option == "n":
+                player.y += 1
+            if option == "e":
+                player.x += 1
+            if option == "s":
+                player.y -= 1
+            if option == "w":
+                player.x -= 1
+
+            try:
+                    if map[player.y][player.x] == "x" or player.x < 0 or player.y < 0:
+                        player.y = oldpos[0]
+                        player.x = oldpos[1]
+                        print("YOU CAN'T MOVE THERE")
+                        option = ""
+                        print(map[player.y][player.x])
+                        print(player.x,player.y)
+            except IndexError:
+                player.y = oldpos[0]
+                player.x = oldpos[1]
+                print("YOU CAN'T MOVE THERE")
+                option = ""
+                print(map[player.y][player.x])
+                print(player.x, player.y)
+
+        print(map[player.y][player.x])
+        print(player.x, player.y)
+
+
+#checkvalidposition
     def attack(self, other):
         option = input("SELECT ATTACK:\n *CHOP \n *SLASH \n *LUNGE \n").upper()
         print(option,"on",other)
@@ -95,17 +144,14 @@ def battle(player, enemy):
 
 
 
-
-
-
-
-
-
-player = Player(10,10,10,10,1,0,True)
+player = Player(10,10,10,10,1,0,True,1,0)
 while player.alive:
+    player.move()
+    print("")
     orc = Enemy("ORC", 5, 50, "A FIERCE ORC. WEAK TO SLASH", "SLASH", 25)
-    input("PREPARE FOR BATTLE")
-    battle(player, orc)
+    if map[player.y][player.x] == "enemy":
+        input("PREPARE FOR BATTLE")
+        battle(player, orc)
 
 #player.attack(orc.name)
 #print(orc.desc)
