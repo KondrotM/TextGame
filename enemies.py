@@ -53,15 +53,15 @@ class Player:
                         player.x = oldpos[1]
                         print("YOU CAN'T MOVE THERE")
                         option = ""
-                        print(map[player.y][player.x])
-                        print(player.x,player.y)
+                        print(map[player.y][player.x]) #debug
+                        print(player.x,player.y) #debug
             except IndexError:
                 player.y = oldpos[0]
                 player.x = oldpos[1]
                 print("YOU CAN'T MOVE THERE")
                 option = ""
-                print(map[player.y][player.x])
-                print(player.x, player.y)
+                print(map[player.y][player.x]) #debug
+                print(player.x, player.y) #debug
 
         print(map[player.y][player.x])
         print(player.x, player.y)
