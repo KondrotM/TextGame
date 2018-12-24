@@ -7,6 +7,7 @@ class Enemy:
         self.strength = strength
         self.exp = exp
 
+
 skeleton = Enemy("SKELETON","A WARRIOR OF THE UNDEAD.","CHOP",20,7,55)
 bat = Enemy("BAT","A LARGE, RAVENOUS BAT.","SLASH",10,4,30)
 orc = Enemy("ORC","A FIERECE ORC, TOWERING OVER YOU.","LUNGE",15,5,40)
