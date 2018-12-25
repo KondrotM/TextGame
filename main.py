@@ -8,7 +8,7 @@ level = cavern                                           #rooms.sword           
 
 
 class Player:
-    def __init__(self,health, defense, strength, speed, level, exp, alive,x,y):
+    def __init__(self,health, defense, strength, speed, level, exp, alive,x,y,switches):
         self.health = health
         self.defense = defense
         self.strength = strength
@@ -18,6 +18,7 @@ class Player:
         self.alive = alive
         self.x = x
         self.y = y
+        self.switches = switches
 
     def getchoice(self):
         choice = input("CHOOSE WHAT TO DO").lower()
@@ -37,10 +38,11 @@ class Player:
         if pos == rooms.enemyC:
             if random.randint(0, 100) > 50:
                 input("PREPARE FOR BATTLE")
-                enemyNo = random.randint(0,len(rooms.enemyC.enemies))
-                battle(player, rooms.enemyC.enemies[enemyNo])
-        if pos == "switch":
-            rooms.switch()
+                enemyNo = random.randint(0,len(rooms.enemyC.enemieslist))
+                battle(player, rooms.enemyC.enemieslist[enemyNo])
+        #if pos == "switch":
+            #rooms.switch()
+
 
     def move(self):
         option = ""
@@ -50,12 +52,15 @@ class Player:
             # rooms and enemies should probably have their own .py files and i import them later
             option = player.getchoice()
             for i in option:
-                if i in ["n","e","s","w","inspect"]:
+                if i in ["n","e","s","w","inspect","flip"]:
                     choicesmade += 1
             if choicesmade > 1:
                 print("TOO MANY TASKS")
             if choicesmade == 0:
                 print("NOTHING HAPPENS")
+
+        if "flip" in option and level[player.y][player.x] == "switch":
+            player.switches = rooms.switch(option,player.switches)
 
         if "n" in option:
             player.y += 1
@@ -174,8 +179,9 @@ def battle(player, enemy):
                 print("YOU HAVE ", player.exp, "/", 45+(player.level*5), "EXP")
 
 
-player = Player(100,10,10,10,1,0,True,1,0)
-
+player = Player(100,10,10,10,1,0,True,1,0,0)
+global flipped
+flipped = 0
 while player.alive:
     player.move()
     player.getpos()
