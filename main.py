@@ -8,17 +8,36 @@ level = cavern                                           #rooms.sword           
 
 
 class Player:
-    def __init__(self,health, defense, strength, speed, level, exp, alive,x,y,switches):
+    def __init__(self,health, defense, strength, speed, level, exp, inventory, alive,x,y,switches):
         self.health = health
         self.defense = defense
         self.strength = strength
         self.speed = speed
         self.level = level
         self.exp = exp
+        self.inventory = inventory
         self.alive = alive
         self.x = x
         self.y = y
         self.switches = switches
+
+    def take(self,item):
+        room = level[player.y][player.x]
+        if item in room.inventory:
+            player.inventory.append(item)
+            print("TOOK",item.upper())
+            room.inventory.remove(item)
+        else:
+            print("NOTHING HAPPENS")
+
+    def drop(self,item):
+        room = level[player.y][player.x]
+        if item in player.inventory:
+            player.inventory.remove(item)
+            print("DROPPED",item.upper())
+            room.inventory.append(item)
+        else:
+            print("NOTHING HAPPENS")
 
     def getchoice(self):
         choice = input("CHOOSE WHAT TO DO").lower()
@@ -37,12 +56,10 @@ class Player:
         pos = level[player.y][player.x]
         if pos == rooms.enemyC:
             if random.randint(0, 100) > 50:
-                input("PREPARE FOR BATTLE")
                 enemyNo = random.randint(0,len(rooms.enemyC.enemieslist))
                 battle(player, rooms.enemyC.enemieslist[enemyNo])
         #if pos == "switch":
             #rooms.switch()
-
 
     def move(self):
         option = ""
@@ -52,7 +69,7 @@ class Player:
             # rooms and enemies should probably have their own .py files and i import them later
             option = player.getchoice()
             for i in option:
-                if i in ["n","e","s","w","inspect","flip"]:
+                if i in ["n","e","s","w","inspect","flip","inventory","take","drop"]:
                     choicesmade += 1
             if choicesmade > 1:
                 print("TOO MANY TASKS")
@@ -61,6 +78,20 @@ class Player:
 
         if "flip" in option and level[player.y][player.x] == "switch":
             player.switches = rooms.switch(option,player.switches)
+
+        if "take" in option:
+            for i in range(option.__len__()):
+                if option[i] == "take":
+                    player.take(option[i+1])
+
+        if "drop" in option:
+            for i in range(option.__len__()):
+                if option[i] == "drop":
+                    player.drop(option[i + 1])
+
+        if "inventory" in option:
+            print("THE CONTENTS OF YOUR INVENTORY")
+            getinv(player.inventory)
 
         if "n" in option:
             player.y += 1
@@ -79,18 +110,18 @@ class Player:
                     player.y = oldpos[0]
                     player.x = oldpos[1]
                     print("YOU CAN'T MOVE THERE")
-                    print(level[player.y][player.x])  # debug
+                    #print(level[player.y][player.x])  # debug
                     print(player.x,player.y)  # debug
                     player.move()
         except IndexError:
             player.y = oldpos[0]
             player.x = oldpos[1]
             print("YOU CAN'T MOVE THERE")
-            print(level[player.y][player.x])  # debug
+            #print(level[player.y][player.x])  # debug
             print(player.x, player.y)  # debug
             player.move()
 
-        print(level[player.y][player.x])
+        #print(level[player.y][player.x])
         print(player.x, player.y)
 
     def inspect(self, item):
@@ -98,6 +129,9 @@ class Player:
         if item == "room":
             item = level[player.y][player.x]
             print(item.desc) # make a for loop later, prints whole list
+            if item.inventory != []:
+                print("THERE ARE ITEMS ON THE GROUND:")
+                getinv(item.inventory)
         else:
             print(item.desc)
 
@@ -129,6 +163,7 @@ class Player:
 
 
 def battle(player, enemy):
+        input("PREPARE FOR BATTLE")
         choices = ["INSPECT","SLASH","CHOP","LUNGE"]
         print("YOU HAVE ENCOUNTERED AN",enemy.name)
         pHealth = player.health
@@ -179,7 +214,12 @@ def battle(player, enemy):
                 print("YOU HAVE ", player.exp, "/", 45+(player.level*5), "EXP")
 
 
-player = Player(100,10,10,10,1,0,True,1,0,0)
+def getinv(inventory):
+    for i in inventory:
+        print(" *",i)
+
+
+player = Player(100,10,10,10,1,0,["sword","shield","potion"],True,1,0,0)
 global flipped
 flipped = 0
 while player.alive:

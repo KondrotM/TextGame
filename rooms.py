@@ -2,11 +2,12 @@ import enemies
 
 
 class Room:
-    def __init__(self,name,desc,actions, enemieslist):
+    def __init__(self,name,desc,actions, enemieslist,inventory):
         self.name = name
         self.desc = desc
         self.actions = actions
         self.enemieslist = enemieslist
+        self.inventory = inventory
 
 #print("YOU COME INTO A ROOM WITH FIVE COLOURED SWITCHES: \n BLUE, GREEN, PURPLE, RED, ORANGE AND YELLOW")
 
@@ -84,9 +85,9 @@ def switch(choice,flipped):
 #print("THE DOOR OPENS")
 
 
-wall = Room("WALL","",[],[])
-enemyC = Room("A SMALL CLEARING",["YOU OBSERVE THAT YOU'VE ENTERED A SMALL CLEARING IN THE NARROW PATHWAY.","A SMALL PEDESTAL PROTRUDES IN THE CENTRE, ILLUMINATED BY FEINT CANDLELIGHT."],[],[enemies.orc,enemies.bat,enemies.slime])
-spawn = Room("A COLLAPSED TUNNEL",["A COLLAPSED TUNNEL"],[],[])
+wall = Room("WALL","",[],[],[])
+enemyC = Room("A SMALL CLEARING",["YOU OBSERVE THAT YOU'VE ENTERED A SMALL CLEARING IN THE NARROW PATHWAY.","A SMALL PEDESTAL PROTRUDES IN THE CENTRE, ILLUMINATED BY FEINT CANDLELIGHT."],[],[enemies.orc,enemies.bat,enemies.slime],[])
+spawn = Room("A COLLAPSED TUNNEL",["A COLLAPSED TUNNEL"],[],[],["potion"])
 
 
 #enemiesC = Room("")
