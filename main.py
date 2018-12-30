@@ -1,21 +1,24 @@
 import rooms
+import items
 import enemies
 
 import random
 
-cavern = [[rooms.wall,rooms.spawn,rooms.wall,rooms.wall],[rooms.enemyC,rooms.enemyC,rooms.wall,rooms.wall],[rooms.wall,rooms.enemyC,rooms.enemyC,rooms.enemyC],[rooms.enemyC,"switch",rooms.wall,rooms.wall,rooms.wall]]
+cavern = [[rooms.wall,rooms.spawn,rooms.wall,rooms.wall],[rooms.sword,rooms.enemyC,rooms.wall,rooms.wall],[rooms.wall,rooms.enemyC,rooms.enemyC,rooms.potion],[rooms.enemyC,"switch",rooms.wall,rooms.wall,rooms.wall]]
 level = cavern                                           #rooms.sword                                                                            #rooms.potion
 
 
 class Player:
-    def __init__(self,health, defense, strength, speed, level, exp, inventory, alive,x,y,switches):
+    def __init__(self,health,maxhealth, defense, strength, speed, level, exp, inventory, equipment, alive,x,y,switches):
         self.health = health
+        self.maxhealth = maxhealth
         self.defense = defense
         self.strength = strength
         self.speed = speed
         self.level = level
         self.exp = exp
         self.inventory = inventory
+        self.equipment = equipment
         self.alive = alive
         self.x = x
         self.y = y
@@ -61,6 +64,17 @@ class Player:
         #if pos == "switch":
             #rooms.switch()
 
+    def equip(self):
+        return 2
+
+    def getequip(self):
+        print("YOU EQUIP:")
+        for i in player.equipment:
+            if i.type == "weapon":
+                print(" *", i.name.upper(),", +",i.strength,"STR")
+            if i.type == "armour":
+                print(" *", i.name.upper(),", +",i.defense,"DEF")
+
     def move(self):
         option = ""
         oldpos = [player.y,player.x]
@@ -69,7 +83,7 @@ class Player:
             # rooms and enemies should probably have their own .py files and i import them later
             option = player.getchoice()
             for i in option:
-                if i in ["n","e","s","w","inspect","flip","inventory","take","drop"]:
+                if i in ["n","e","s","w","inspect","flip","inventory","take","drop","equipment","drink","stats"]:
                     choicesmade += 1
             if choicesmade > 1:
                 print("TOO MANY TASKS")
@@ -79,10 +93,31 @@ class Player:
         if "flip" in option and level[player.y][player.x] == "switch":
             player.switches = rooms.switch(option,player.switches)
 
+        if "equipment" in option:
+            player.getequip()
+
+        if "stats" in option:
+            player.printstats()
+
         if "take" in option:
             for i in range(option.__len__()):
                 if option[i] == "take":
                     player.take(option[i+1])
+
+        if "drink" in option:
+            for i in range(option.__len__()):
+                if option[i] == "drink":
+                    if option[i + 1] == "potion":
+                        if items.potionH in player.inventory:
+                            player.health += 20
+                            if player.health > player.maxhealth:
+                                player.health = player.maxhealth
+                            player.inventory.remove(items.potionH)
+                            print(["DRANK POTION", "20 HEALTH RESTORED."])
+                        else:
+                            print("YOU HAVE NO POTIONS TO DRINK")
+                    else:
+                        print("YOU CAN'T DRINK THAT")
 
         if "drop" in option:
             for i in range(option.__len__()):
@@ -133,7 +168,17 @@ class Player:
                 print("THERE ARE ITEMS ON THE GROUND:")
                 getinv(item.inventory)
         else:
-            print(item.desc)
+            itemdict = {
+                "plank" : items.sword,
+                "potion" : items.potionH,
+                "rags" : items.armour,
+                "sword" : items.sword2,
+                "armour" : items.armour2,
+                "torch" : items.torch
+            }
+
+            print(itemdict[item].desc)
+
 
 #checkvalidposition
     def attack(self, other):
@@ -149,6 +194,7 @@ class Player:
 
     def upgrade(self):
         option = ""
+        print("HEALTH RESTORED && INCREASED")
         while option not in ("DEFENSE","STRENGTH","SPEED","DEF","STR","SPD"):
             option = input("CHOOSE WHAT STAT TO UPGRADE \n *DEFENSE \n *STRENGTH \n *SPEED \n").upper()
             if option in ("DEFENSE","DEF"):
@@ -159,7 +205,8 @@ class Player:
                 player.speed += 1
             else:
                 print("INVALID OPTION")
-        player.health += 1
+        player.maxhealth += 10
+        player.health = player.maxhealth
 
 
 def battle(player, enemy):
@@ -216,10 +263,10 @@ def battle(player, enemy):
 
 def getinv(inventory):
     for i in inventory:
-        print(" *",i)
+        print(" *",i.name)
 
 
-player = Player(100,10,10,10,1,0,["sword","shield","potion"],True,1,0,0)
+player = Player(100,100,10,10,10,1,0,[items.potionH],[items.sword,items.armour],True,1,0,0)
 global flipped
 flipped = 0
 while player.alive:
