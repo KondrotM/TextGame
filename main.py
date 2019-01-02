@@ -37,7 +37,7 @@ class Player:
         room = level[player.y][player.x]
         if item in player.inventory:
             player.inventory.remove(item)
-            print("DROPPED",item.upper())
+            print("DROPPED",item.name.upper())
             room.inventory.append(item)
         else:
             print("NOTHING HAPPENS")
@@ -118,6 +118,8 @@ class Player:
 
     def move(self,option):
         oldpos = [player.y, player.x]
+        oldroom = level[player.y][player.x]
+        validmove = True
         if "n" in option:
             player.y += 1
         if "e" in option:
@@ -134,16 +136,19 @@ class Player:
                     print("YOU CAN'T MOVE THERE")
                     #print(level[player.y][player.x])  # debug
                     print(player.x,player.y)  # debug
+                    validmove = False
                     player.nturn()
         except IndexError:
             player.y = oldpos[0]
             player.x = oldpos[1]
             print("YOU CAN'T MOVE THERE")
             print(player.x, player.y)  # debug
+            validmove = False
             player.nturn()
-
-
-        print(player.x, player.y)
+        if validmove:
+            if oldroom.type == "temp":
+                oldroom.inventory = []
+            player.getpos()
 
     def drink(self,item):
         if item.name == "potion":
@@ -357,9 +362,7 @@ def getinv(inventory):
 player = Player(100,100,11,12,10,1,0,[items.potionH,items.sword2],[items.sword,items.armour],True,1,0,[0])
 
 while player.alive:
-
     player.nturn()
-    player.getpos()
 
 
 #player.attack(orc.name)
