@@ -4,12 +4,12 @@ import enemies
 
 import random
 
-cavern = [[rooms.wall,rooms.spawn,rooms.wall,rooms.wall],[rooms.sword,rooms.enemyC,rooms.wall,rooms.wall],[rooms.wall,rooms.enemyC,rooms.enemyC,rooms.potion],[rooms.enemyC,"switch",rooms.wall,rooms.wall,rooms.wall]]
+cavern = [[rooms.wall,rooms.spawn,rooms.wall,rooms.wall],[rooms.sword,rooms.enemyC,rooms.wall,rooms.wall],[rooms.wall,rooms.enemyC,rooms.enemyC,rooms.potion],[rooms.enemyC,rooms.switch,rooms.wall,rooms.wall,rooms.wall]]
 level = cavern                                           #rooms.sword                                                                            #rooms.potion
 
 
 class Player:
-    def __init__(self,health,maxhealth, defense, strength, speed, level, exp, inventory, equipment, alive,x,y,switches):
+    def __init__(self,health,maxhealth, defense, strength, speed, level, exp, inventory, equipment, alive,x,y,memory):
         self.health = health
         self.maxhealth = maxhealth
         self.defense = defense
@@ -22,13 +22,13 @@ class Player:
         self.alive = alive
         self.x = x
         self.y = y
-        self.switches = switches
+        self.memory = memory
 
     def take(self,item):
         room = level[player.y][player.x]
         if item in room.inventory:
             player.inventory.append(item)
-            print("TOOK",item.upper())
+            print("TOOK",item.name.upper())
             room.inventory.remove(item)
         else:
             print("NOTHING HAPPENS")
@@ -59,13 +59,54 @@ class Player:
         pos = level[player.y][player.x]
         if pos == rooms.enemyC:
             if random.randint(0, 100) > 50:
-                enemyNo = random.randint(0,len(rooms.enemyC.enemieslist))
+                enemyNo = random.randint(0,len(rooms.enemyC.enemieslist)-1)
                 battle(player, rooms.enemyC.enemieslist[enemyNo])
         #if pos == "switch":
             #rooms.switch()
 
-    def equip(self):
-        return 2
+    def equip(self,item):
+        if item.type == "weapon":
+            player.strength -= player.equipment[0].strength
+            player.strength += item.strength
+            player.equipment[0] = item
+            print("EQUIPPED", item.name)
+        elif item.type == "armour":
+            player.defense -= player.equipment[0].defense
+            player.defense += item.defense
+            player.equipment[1] = item
+            print("EQUIPPED", item.name)
+        else:
+            print("YOU CAN'T EQUIP THAT")
+
+    def finddirections(self):
+        truedirs = []
+        try:
+            direction = level[player.y+1][player.x]
+            if direction != rooms.wall:
+                truedirs.append("NORTH")
+        except:
+            pass
+        try:
+            direction = level[player.y][player.x+1]
+            if direction != rooms.wall:
+                truedirs.append("EAST")
+        except:
+            pass
+        try:
+            direction = level[player.y-1][player.x]
+            if direction != rooms.wall:
+                if player.y != 0:
+                    truedirs.append("SOUTH")
+        except:
+            pass
+        try:
+            direction = level[player.y][player.x-1]
+            if direction != rooms.wall:
+                truedirs.append("WEST")
+        except:
+            pass
+        return truedirs
+
 
     def getequip(self):
         print("YOU EQUIP:")
@@ -75,59 +116,8 @@ class Player:
             if i.type == "armour":
                 print(" *", i.name.upper(),", +",i.defense,"DEF")
 
-    def move(self):
-        option = ""
-        oldpos = [player.y,player.x]
-        choicesmade = 0
-        while choicesmade != 1:  # checks if only one valid argument is given.
-            # rooms and enemies should probably have their own .py files and i import them later
-            option = player.getchoice()
-            for i in option:
-                if i in ["n","e","s","w","inspect","flip","inventory","take","drop","equipment","drink","stats"]:
-                    choicesmade += 1
-            if choicesmade > 1:
-                print("TOO MANY TASKS")
-            if choicesmade == 0:
-                print("NOTHING HAPPENS")
-
-        if "flip" in option and level[player.y][player.x] == "switch":
-            player.switches = rooms.switch(option,player.switches)
-
-        if "equipment" in option:
-            player.getequip()
-
-        if "stats" in option:
-            player.printstats()
-
-        if "take" in option:
-            for i in range(option.__len__()):
-                if option[i] == "take":
-                    player.take(option[i+1])
-
-        if "drink" in option:
-            for i in range(option.__len__()):
-                if option[i] == "drink":
-                    if option[i + 1] == "potion":
-                        if items.potionH in player.inventory:
-                            player.health += 20
-                            if player.health > player.maxhealth:
-                                player.health = player.maxhealth
-                            player.inventory.remove(items.potionH)
-                            print(["DRANK POTION", "20 HEALTH RESTORED."])
-                        else:
-                            print("YOU HAVE NO POTIONS TO DRINK")
-                    else:
-                        print("YOU CAN'T DRINK THAT")
-
-        if "drop" in option:
-            for i in range(option.__len__()):
-                if option[i] == "drop":
-                    player.drop(option[i + 1])
-
-        if "inventory" in option:
-            print("THE CONTENTS OF YOUR INVENTORY")
-            getinv(player.inventory)
-
+    def move(self,option):
+        oldpos = [player.y, player.x]
         if "n" in option:
             player.y += 1
         if "e" in option:
@@ -136,45 +126,143 @@ class Player:
             player.y -= 1
         if "w" in option:
             player.x -= 1
-        if "inspect" in option:
-            for i in range(option.__len__()):
-                if option[i] == "inspect":
-                    player.inspect(option[i+1])
+
         try:
-                if level[player.y][player.x] == "x" or player.x < 0 or player.y < 0:
+                if level[player.y][player.x] == rooms.wall or player.x < 0 or player.y < 0:
                     player.y = oldpos[0]
                     player.x = oldpos[1]
                     print("YOU CAN'T MOVE THERE")
                     #print(level[player.y][player.x])  # debug
                     print(player.x,player.y)  # debug
-                    player.move()
+                    player.nturn()
         except IndexError:
             player.y = oldpos[0]
             player.x = oldpos[1]
             print("YOU CAN'T MOVE THERE")
-            #print(level[player.y][player.x])  # debug
             print(player.x, player.y)  # debug
-            player.move()
+            player.nturn()
 
-        #print(level[player.y][player.x])
+
         print(player.x, player.y)
+
+    def drink(self,item):
+        if item.name == "potion":
+            if items.potionH in player.inventory:
+                player.health += 20
+                if player.health > player.maxhealth:
+                    player.health = player.maxhealth
+                player.inventory.remove(items.potionH)
+                print(["DRANK POTION", "20 HEALTH RESTORED."])
+            else:
+                print("YOU HAVE NO POTIONS TO DRINK")
+        else:
+            print("YOU CAN'T DRINK THAT")
+
+    def getvalidchoices(self):
+        directions = ["n","s","e","w"]
+        oneWord = ["inventory","stats","inv"]
+        twoWord = ["inspect","flip","take","drop","drink","equip"]
+        invchoices = []
+        for i in player.inventory:
+            invchoices.append(i)
+        validchoices = [directions,oneWord,twoWord,invchoices]
+        return validchoices
+
+    def nturn(self):
+        cRoom = level[player.y][player.x]
+        print("YOU ARE IN", cRoom.name)
+        option = player.getchoice()
+        validchoices = player.getvalidchoices()
+        itemdict = {
+            "plank": items.sword,
+            "potion": items.potionH,
+            "rags": items.armour,
+            "sword": items.sword2,
+            "armour": items.armour2,
+            "torch": items.torch,
+#            "room": level[[player.y],[player.x]]
+        }
+        choicesmade = 0
+        while choicesmade != 1:  # checks if only one valid argument is given.
+            for i in option:
+                if i in validchoices[0] or i in validchoices[1] or i in validchoices[2]:
+                    choicesmade += 1
+            if choicesmade > 1:
+                print("TOO MANY TASKS")
+            if choicesmade == 0:
+                print("NOTHING HAPPENS")
+
+        for i in option:
+            if i in validchoices[0]:
+                player.move(i)
+
+        if "flip" in option and cRoom == rooms.switch:
+            player.memory[0] = rooms.switch(option,player.memory[0])
+
+        if "equipment" in option:
+            player.getequip()
+
+        if "stats" in option:
+            player.printstats()
+
+        if "inventory" in option:
+            print("THE CONTENTS OF YOUR INVENTORY")
+            getinv(player.inventory)
+
+        if "inspect" in option:
+            for i in range(option.__len__()):
+                if option[i] == "inspect":
+                    player.inspect(option[i+1])
+
+        if "drink" in option:
+            for i in range(option.__len__()):
+                if option[i] == "drink":
+                    try:
+                        player.drink(itemdict[option[i+1]])
+                    except:
+                        print("YOU CAN'T DRINK THAT")
+        if "drop" in option:
+            for i in range(option.__len__()):
+                if option[i] == "drop":
+                    try:
+                        player.drop(itemdict[option[i+1]])
+                    except:
+                        print("YOU CAN'T DROP THAT")
+
+        if "equip" in option:
+            for i in range(option.__len__()):
+                if option[i] == "equip":
+                    if option[i+1] in itemdict:
+                        player.equip(itemdict[option[i+1]])
+                    else:
+                        print("YOU CAN'T EQUIP THAT")
+
+        if "take" in option:
+            for i in range(option.__len__()):
+                if option[i] == "take":
+                    if option[i+1] in itemdict:
+                        player.take(itemdict[option[i+1]])
+                    else:
+                        print("YOU CAN'T TAKE THAT")
 
     def inspect(self, item):
         item = item.lower()
         if item == "room":
             item = level[player.y][player.x]
             print(item.desc) # make a for loop later, prints whole list
+            directions = player.finddirections()
+            print("YOU CAN MOVE", directions)
             if item.inventory != []:
                 print("THERE ARE ITEMS ON THE GROUND:")
                 getinv(item.inventory)
         else:
             itemdict = {
-                "plank" : items.sword,
-                "potion" : items.potionH,
-                "rags" : items.armour,
-                "sword" : items.sword2,
-                "armour" : items.armour2,
-                "torch" : items.torch
+                "plank": items.sword,
+                "potion": items.potionH,
+                "rags": items.armour,
+                "sword": items.sword2,
+                "armour": items.armour2,
+                "torch": items.torch
             }
 
             print(itemdict[item].desc)
@@ -266,14 +354,12 @@ def getinv(inventory):
         print(" *",i.name)
 
 
-player = Player(100,100,10,10,10,1,0,[items.potionH],[items.sword,items.armour],True,1,0,0)
-global flipped
-flipped = 0
-while player.alive:
-    player.move()
-    player.getpos()
+player = Player(100,100,11,12,10,1,0,[items.potionH,items.sword2],[items.sword,items.armour],True,1,0,[0])
 
-    print("")
+while player.alive:
+
+    player.nturn()
+    player.getpos()
 
 
 #player.attack(orc.name)
