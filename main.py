@@ -3,6 +3,7 @@ import items
 import enemies
 
 import random
+import time
 
 cavern = [[rooms.wall,rooms.spawn,rooms.wall,rooms.wall],[rooms.sword,rooms.enemyC,rooms.wall,rooms.wall],[rooms.wall,rooms.enemyC,rooms.enemyC,rooms.potion],[rooms.enemyC,rooms.switch,rooms.wall,rooms.wall,rooms.wall]]
 level = cavern                                           #rooms.sword                                                                            #rooms.potion
@@ -28,21 +29,26 @@ class Player:
         room = level[player.y][player.x]
         if item in room.inventory:
             player.inventory.append(item)
+            time.sleep(.67)
             print("TOOK",item.name.upper())
             room.inventory.remove(item)
         else:
+            time.sleep(.67)
             print("NOTHING HAPPENS")
 
     def drop(self,item):
         room = level[player.y][player.x]
         if item in player.inventory:
             player.inventory.remove(item)
+            time.sleep(.67)
             print("DROPPED",item.name.upper())
             room.inventory.append(item)
         else:
+            time.sleep(.67)
             print("NOTHING HAPPENS")
 
     def getchoice(self):
+        time.sleep(.67)
         choice = input("CHOOSE WHAT TO DO").lower()
         inputs = []
         word = ""
@@ -69,13 +75,16 @@ class Player:
             player.strength -= player.equipment[0].strength
             player.strength += item.strength
             player.equipment[0] = item
+            time.sleep(.67)
             print("EQUIPPED", item.name)
         elif item.type == "armour":
             player.defense -= player.equipment[0].defense
             player.defense += item.defense
             player.equipment[1] = item
+            time.sleep(.67)
             print("EQUIPPED", item.name)
         else:
+            time.sleep(.67)
             print("YOU CAN'T EQUIP THAT")
 
     def finddirections(self):
@@ -107,14 +116,15 @@ class Player:
             pass
         return truedirs
 
-
     def getequip(self):
+        time.sleep(.67)
         print("YOU EQUIP:")
         for i in player.equipment:
             if i.type == "weapon":
                 print(" *", i.name.upper(),", +",i.strength,"STR")
             if i.type == "armour":
                 print(" *", i.name.upper(),", +",i.defense,"DEF")
+        time.sleep(.67)
 
     def move(self,option):
         oldpos = [player.y, player.x]
@@ -133,6 +143,7 @@ class Player:
                 if level[player.y][player.x] == rooms.wall or player.x < 0 or player.y < 0:
                     player.y = oldpos[0]
                     player.x = oldpos[1]
+                    time.sleep(.67)
                     print("YOU CAN'T MOVE THERE")
                     #print(level[player.y][player.x])  # debug
                     print(player.x,player.y)  # debug
@@ -141,14 +152,25 @@ class Player:
         except IndexError:
             player.y = oldpos[0]
             player.x = oldpos[1]
+            time.sleep(.67)
             print("YOU CAN'T MOVE THERE")
-            print(player.x, player.y)  # debug
             validmove = False
             player.nturn()
+
+        pos = level[player.y][player.x]
+        time.sleep(.67)
+        print("YOU ENTER", pos.name)
+
         if validmove:
             if oldroom.type == "temp":
                 oldroom.inventory = []
-            player.getpos()
+
+            if pos == rooms.enemyC:
+                if random.randint(0, 100) > 50:
+                    enemyNo = random.randint(0, len(rooms.enemyC.enemieslist) - 1)
+                    battle(player, rooms.enemyC.enemieslist[enemyNo])
+
+
 
     def drink(self,item):
         if item.name == "potion":
@@ -157,10 +179,15 @@ class Player:
                 if player.health > player.maxhealth:
                     player.health = player.maxhealth
                 player.inventory.remove(items.potionH)
-                print(["DRANK POTION", "20 HEALTH RESTORED."])
+                time.sleep(.67)
+                print("DRANK POTION")
+                time.sleep(.67)
+                print("20 HEALTH RESTORED")
             else:
+                time.sleep(.67)
                 print("YOU HAVE NO POTIONS TO DRINK")
         else:
+            time.sleep(.67)
             print("YOU CAN'T DRINK THAT")
 
     def getvalidchoices(self):
@@ -175,7 +202,6 @@ class Player:
 
     def nturn(self):
         cRoom = level[player.y][player.x]
-        print("YOU ARE IN", cRoom.name)
         option = player.getchoice()
         validchoices = player.getvalidchoices()
         itemdict = {
@@ -193,8 +219,10 @@ class Player:
                 if i in validchoices[0] or i in validchoices[1] or i in validchoices[2]:
                     choicesmade += 1
             if choicesmade > 1:
+                time.sleep(.67)
                 print("TOO MANY TASKS")
             if choicesmade == 0:
+                time.sleep(.67)
                 print("NOTHING HAPPENS")
 
         for i in option:
@@ -211,28 +239,34 @@ class Player:
             player.printstats()
 
         if "inventory" in option:
+            time.sleep(.67)
             print("THE CONTENTS OF YOUR INVENTORY")
             getinv(player.inventory)
 
         if "inspect" in option:
             for i in range(option.__len__()):
                 if option[i] == "inspect":
-                    player.inspect(option[i+1])
-
+                    try:
+                        player.inspect(option[i+1])
+                    except:
+                        time.sleep(.67)
+                        print("YOU CAN'T DO THAT")
         if "drink" in option:
             for i in range(option.__len__()):
                 if option[i] == "drink":
                     try:
                         player.drink(itemdict[option[i+1]])
                     except:
-                        print("YOU CAN'T DRINK THAT")
+                        time.sleep(.67)
+                        print("YOU CAN'T DO THAT")
         if "drop" in option:
             for i in range(option.__len__()):
                 if option[i] == "drop":
                     try:
                         player.drop(itemdict[option[i+1]])
                     except:
-                        print("YOU CAN'T DROP THAT")
+                        time.sleep(.67)
+                        print("YOU CAN'T DO THAT")
 
         if "equip" in option:
             for i in range(option.__len__()):
@@ -240,7 +274,8 @@ class Player:
                     if option[i+1] in itemdict:
                         player.equip(itemdict[option[i+1]])
                     else:
-                        print("YOU CAN'T EQUIP THAT")
+                        time.sleep(.67)
+                        print("YOU CAN'T DO THAT")
 
         if "take" in option:
             for i in range(option.__len__()):
@@ -248,17 +283,25 @@ class Player:
                     if option[i+1] in itemdict:
                         player.take(itemdict[option[i+1]])
                     else:
-                        print("YOU CAN'T TAKE THAT")
+                        time.sleep(.67)
+                        print("YOU CAN'T DO THAT")
 
     def inspect(self, item):
         item = item.lower()
         if item == "room":
             item = level[player.y][player.x]
-            print(item.desc) # make a for loop later, prints whole list
+            for i in item.desc:
+                print(i)
+                time.sleep(1)
             directions = player.finddirections()
+            time.sleep(.33)
+            print()
             print("YOU CAN MOVE", directions)
             if item.inventory != []:
+                time.sleep(.67)
+                print()
                 print("THERE ARE ITEMS ON THE GROUND:")
+                time.sleep(.67)
                 getinv(item.inventory)
         else:
             itemdict = {
@@ -303,9 +346,11 @@ class Player:
 
 
 def battle(player, enemy):
+        time.sleep(.67)
+        print("YOU HAVE ENCOUNTERED AN",enemy.name)
+        time.sleep(.67)
         input("PREPARE FOR BATTLE")
         choices = ["INSPECT","SLASH","CHOP","LUNGE"]
-        print("YOU HAVE ENCOUNTERED AN",enemy.name)
         pHealth = player.health
         eHealth = enemy.health
         while eHealth > 0 and pHealth > 0:
@@ -314,6 +359,7 @@ def battle(player, enemy):
                 choice = ""
                 while choice not in choices:
                     print(choices)
+                    time.sleep(.67)
                     choice = input("CHOOSE YOUR ACTION \n")
                     choice = choice.upper()
                 if choice == "INSPECT":
@@ -327,31 +373,45 @@ def battle(player, enemy):
                     damage = round(damage,2)
                     eHealth -= damage
                     eHealth = round(eHealth,2)
+                    if eHealth < 0:
+                        eHealth = 0
+                    time.sleep(.67)
                     print("ENEMY TOOK ",damage," DAMAGE")
+                    time.sleep(.67)
                     print("ENEMY HAS ",eHealth," HEALTH LEFT")
                     turn = False
-            print("---ENEMY TURN---")
-            multiplier = random.randint(80, 120) / 100
-            damage = enemy.strength * multiplier
-            pHealth -= damage
-            print("THE ",enemy.name," HITS YOU FOR ",damage," DAMAGE")
-            print("YOU HAVE ",pHealth," HEALTH REMAINING")
-        if pHealth <= 0:
-            print("YOU ARE DEAD")
-            player.alive = False
-        elif eHealth <= 0:
+        if eHealth <= 0:
+            time.sleep(1)
             print("VICTORY")
             player.health = pHealth
             player.exp += enemy.exp
             if player.exp >= 45+(player.level*5):
+                time.sleep(.67)
                 print("LEVEL UP")
                 player.level += 1
                 player.exp -= 45+(player.level*5)
                 player.upgrade()
                 player.printstats()
             else:
+                time.sleep(.67)
                 print("YOU HAVE GAINED ", enemy.exp, " EXP")
+                time.sleep(.67)
                 print("YOU HAVE ", player.exp, "/", 45+(player.level*5), "EXP")
+        else:
+            time.sleep(.67)
+            print("---ENEMY TURN---")
+            multiplier = random.randint(80, 120) / 100
+            damage = enemy.strength * multiplier
+            pHealth -= damage
+            time.sleep(.67)
+            print("THE ", enemy.name, " HITS YOU FOR ", damage, " DAMAGE")
+            time.sleep(.67)
+            print("YOU HAVE ", pHealth, " HEALTH REMAINING")
+            time.sleep(.67)
+        if pHealth <= 0:
+            time.sleep(1)
+            print("YOU ARE DEAD")
+            player.alive = False
 
 
 def getinv(inventory):
@@ -363,6 +423,7 @@ player = Player(100,100,11,12,10,1,0,[items.potionH,items.sword2],[items.sword,i
 
 while player.alive:
     player.nturn()
+#    time.sleep(.67)
 
 
 #player.attack(orc.name)
