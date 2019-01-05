@@ -6,7 +6,7 @@ import enemies
 import random
 import time
 
-cavern = [[rooms.wall,rooms.spawn,rooms.wall,rooms.wall],[rooms.sword,rooms.enemyC,rooms.wall,rooms.wall],[rooms.wall,rooms.enemyC,rooms.enemyC,rooms.potion],[rooms.enemyC,rooms.switch,rooms.wall,rooms.wall,rooms.wall]]
+cavern = [[rooms.wall,rooms.spawn,rooms.wall,rooms.wall],[rooms.sword,rooms.enemyC,rooms.wall,rooms.wall],[rooms.wall,rooms.enemyC,rooms.enemyC,rooms.potion],[rooms.enemyC,rooms.switch,rooms.passage,rooms.wall]]
 level = cavern                                           #rooms.sword                                                                            #rooms.potion
 
 
@@ -61,15 +61,6 @@ class Player:
                 word = word + i
         inputs.append(word)
         return inputs
-
-    def getpos(self):
-        pos = level[player.y][player.x]
-        if pos == rooms.enemyC:
-            if random.randint(0, 100) > 50:
-                enemyNo = random.randint(0,len(rooms.enemyC.enemieslist)-1)
-                battle(player, rooms.enemyC.enemieslist[enemyNo])
-        #if pos == "switch":
-            #rooms.switch()
 
     def equip(self,item):
         if item.type == "weapon":
@@ -148,6 +139,32 @@ class Player:
         for i in west:
             if i in option:
                 player.x -= 1
+
+        if level[player.y][player.x] == rooms.passage:
+            print(level[player.y][player.x].name)
+            if rooms.passage.actions:
+                if items.pendant in player.inventory:
+                    print("YOU INSERT THE PENDANT INTO THE OPENING ON THE DOOR")
+                    time.sleep(1)
+                    print("THE DOOR SLOWLY INCHES OPEN")
+                    time.sleep(.67)
+                    player.inspect("room")
+                    choice = input("WOULD YOU LIKE TO LEAVE THE CAVERN? (y/n)\n").lower()
+                    if choice in ["yes", "y"]:
+                        time.sleep(.67)
+                        print("YOU LEAVE THE CAVERN AND RETURN TO YOUR LIFE WITH A TALE TO TELL")
+                        time.sleep(1.5)
+                        print("GAME WON")
+                        quit()
+                else:
+                    time.sleep(.67)
+                    print("THE DOOR IS LOCKED. TRY FIND A KEY (OR PENDANT) TO UNLOCK IT WITH")
+                    player.x -= 1
+            else:
+                time.sleep(.67)
+                print("YOU CAN'T MOVE THERE")
+                player.x -= 1
+
         try:
                 if level[player.y][player.x] == rooms.wall or player.x < 0 or player.y < 0:
                     player.y = oldpos[0]
@@ -177,7 +194,7 @@ class Player:
             if pos == rooms.enemyC:
                 if random.randint(0, 100) > 50:
                     enemyNo = random.randint(0, len(rooms.enemyC.enemieslist) - 1)
-                    battle(player, rooms.enemyC.enemieslist[enemyNo])
+                    battle(player, rooms.enemyC.enemieslist[enemyNo],level)
 
 
 
@@ -219,7 +236,7 @@ class Player:
             "sword": items.sword2,
             "armour": items.armour2,
             "torch": items.torch,
-#            "room": level[[player.y],[player.x]]
+            "pendant" : items.pendant
         }
         choicesmade = 0
         while choicesmade != 1:  # checks if only one valid argument is given.
@@ -239,7 +256,7 @@ class Player:
                 player.move(i)
 
         if "flip" in option and cRoom == rooms.switch:
-            player.memory[0] = rooms.switch(option,player.memory[0])
+            player.memory[0] = rooms.switchp(option,player.memory[0])
 
         if "save" in option:
             save(player)
@@ -372,7 +389,7 @@ class Player:
         player.health = player.maxhealth
 
 
-def battle(player, enemy):
+def battle(player, enemy,level):
         time.sleep(.67)
         print("YOU HAVE ENCOUNTERED AN",enemy.name)
         time.sleep(.67)
@@ -413,13 +430,22 @@ def battle(player, enemy):
             if eHealth > 0:
                 time.sleep(.67)
                 print("---ENEMY TURN---")
-                multiplier = random.randint(80, 120) / 100
-                damage = enemy.strength * multiplier
-                pHealth -= damage
-                time.sleep(.67)
-                print("THE ", enemy.name, " HITS YOU FOR ", damage, " DAMAGE")
-                time.sleep(.67)
-                print("YOU HAVE ", pHealth, " HEALTH REMAINING")
+                hitRNG = random.randint(0,100)
+                if hitRNG < player.speed:
+                    multiplier = random.randint(80, 120) / 100
+                    damage = enemy.strength * multiplier
+                    damage -= (player.defense/10)
+                    pHealth -= damage
+                    time.sleep(.67)
+                    print("THE ", enemy.name, " HITS YOU FOR ", damage, " DAMAGE")
+                    time.sleep(.67)
+                    print("YOU HAVE ", pHealth, " HEALTH REMAINING")
+                    time.sleep(.67)
+                else:
+                    time.sleep(.67)
+                    print("THE ENEMY MISSED ITS ATTACK")
+                    time.sleep(1)
+                print("---YOUR TURN---")
                 time.sleep(.67)
         if pHealth <= 0:
             time.sleep(1)
@@ -428,6 +454,11 @@ def battle(player, enemy):
         if eHealth <= 0:
             time.sleep(1)
             print("VICTORY")
+            potRNG = random.randint(0,100)
+            if potRNG > 80:
+                level[player.y][player.x].inventory.append(items.potionH)
+                time.sleep(.67)
+                print("ENEMY DROPPED A POTION")
             player.health = pHealth
             player.exp += enemy.exp
             if player.exp >= 45+(player.level*5):
