@@ -7,26 +7,26 @@ import random
 import time
 
 cavern = [[rooms.wall,rooms.spawn,rooms.wall,rooms.wall],[rooms.sword,rooms.enemyC,rooms.wall,rooms.wall],[rooms.wall,rooms.enemyC,rooms.enemyC,rooms.potion],[rooms.enemyC,rooms.switch,rooms.passage,rooms.wall]]
-level = cavern                                           #rooms.sword                                                                            #rooms.potion
-
+level = cavern
 
 class Player:
     def __init__(self,health,maxhealth, defense, strength, speed, level, exp, inventory, equipment, alive,x,y,memory):
-        self.health = health
+        self.health = health    # need two diffrent ones so potions don't overheal
         self.maxhealth = maxhealth
-        self.defense = defense
-        self.strength = strength
-        self.speed = speed
-        self.level = level
-        self.exp = exp
-        self.inventory = inventory
-        self.equipment = equipment
-        self.alive = alive
-        self.x = x
+        self.defense = defense  #
+        self.strength = strength  # combat stats for battle
+        self.speed = speed      #
+        self.level = level      # increases with exp
+        self.exp = exp          # increases with enemy kills
+        self.inventory = inventory  # player's local inventory
+        self.equipment = equipment  # equipment grants stat upgrades, while inv doesn't
+        self.alive = alive  # a dead player loses the game
+        self.x = x  # player co ordinates
         self.y = y
-        self.memory = memory
+        self.memory = memory  # a list of unique attributes which carry through the game.
 
     def take(self,item):
+        # item is taken from the room's inventory and added to the player's
         room = level[player.y][player.x]
         if item in room.inventory:
             player.inventory.append(item)
@@ -38,6 +38,7 @@ class Player:
             print("NOTHING HAPPENS")
 
     def drop(self,item):
+        #item is taken from player's inventory and added to the room's
         room = level[player.y][player.x]
         if item in player.inventory:
             player.inventory.remove(item)
@@ -49,8 +50,10 @@ class Player:
             print("NOTHING HAPPENS")
 
     def getchoice(self):
+        # splits player's input into an array of words.
         time.sleep(.67)
-        choice = input("CHOOSE WHAT TO DO").lower()
+        print("CHOOSE WHAT TO DO")
+        choice = input().lower()
         inputs = []
         word = ""
         for i in choice:
@@ -63,6 +66,7 @@ class Player:
         return inputs
 
     def equip(self,item):
+        # item is added to player's equipment, and any stats are added
         if item.type == "weapon":
             player.strength -= player.equipment[0].strength
             player.strength += item.strength
@@ -80,6 +84,7 @@ class Player:
             print("YOU CAN'T EQUIP THAT")
 
     def finddirections(self):
+        # checks if the player can move in a certain direction. used to let the player know their options on the map.
         truedirs = []
         try:
             direction = level[player.y+1][player.x]
@@ -109,6 +114,7 @@ class Player:
         return truedirs
 
     def getequip(self):
+        # displays player's equipment
         time.sleep(.67)
         print("YOU EQUIP:")
         for i in player.equipment:
@@ -119,29 +125,31 @@ class Player:
         time.sleep(.67)
 
     def move(self,option):
+        # changes the player's position on the level grid.
         oldpos = [player.y, player.x]
         oldroom = level[player.y][player.x]
         validmove = True
         option += " "
-        north = ["north", "n", "up", "u"]
-        east = ["east", "e", "right", "r"]
-        south = ["south", "s", "down", "d"]
-        west = ["west", "w", "left", "l"]
+        # appends space to each option so only one is recognised
+        north = ["north ", "n ", "up ", "u "]
+        east = ["east ", "e ", "right ", "r "]
+        south = ["south ", "s ", "d "]
+        west = ["west ", "w ", "left ", "l "]
         for i in north:
-            if i in option:
+            if option in i:
                 player.y += 1
         for i in east:
-            if i in option:
+            if option in i:
                 player.x += 1
         for i in south:
-            if i in option:
+            if option in i:
                 player.y -= 1
         for i in west:
-            if i in option:
+            if option in i:
                 player.x -= 1
-
+        # checks if you are in the final level room
         if level[player.y][player.x] == rooms.passage:
-            print(level[player.y][player.x].name)
+            # player must complete the puzzle first
             if rooms.passage.actions:
                 if items.pendant in player.inventory:
                     print("YOU INSERT THE PENDANT INTO THE OPENING ON THE DOOR")
@@ -166,16 +174,16 @@ class Player:
                 player.x -= 1
 
         try:
+            # checks if the player is in a wall, or out of bounds.
                 if level[player.y][player.x] == rooms.wall or player.x < 0 or player.y < 0:
                     player.y = oldpos[0]
                     player.x = oldpos[1]
                     time.sleep(.67)
                     print("YOU CAN'T MOVE THERE")
-                    #print(level[player.y][player.x])  # debug
-                    print(player.x,player.y)  # debug
                     validmove = False
                     player.nturn()
         except IndexError:
+            # if the player.x/y > level[x/y], this exception catches it.
             player.y = oldpos[0]
             player.x = oldpos[1]
             time.sleep(.67)
@@ -188,17 +196,18 @@ class Player:
 
         if validmove:
             print("YOU ENTER", pos.name)
+            # clears previous room's inventory
             if oldroom.type == "temp":
                 oldroom.inventory = []
 
+            # checks for hostile room
             if pos == rooms.enemyC:
                 if random.randint(0, 100) > 50:
                     enemyNo = random.randint(0, len(rooms.enemyC.enemieslist) - 1)
                     battle(player, rooms.enemyC.enemieslist[enemyNo],level)
 
-
-
     def drink(self,item):
+        # player drinks (health) potion to restore health
         if item.name == "potion":
             if items.potionH in player.inventory:
                 player.health += 20
@@ -217,6 +226,7 @@ class Player:
             print("YOU CAN'T DRINK THAT")
 
     def getvalidchoices(self):
+        # gets all possible choices accepted by the game input
         directions = ["north", "n", "up", "u", "west", "w", "left", "l", "south", "s", "down", "d", "east", "e", "right", "r"]
         oneWord = ["inventory", "stats", "inv", "equipment","save"]
         twoWord = ["inspect", "flip", "take", "drop", "drink", "equip"]
@@ -227,8 +237,10 @@ class Player:
         return validchoices
 
     def nturn(self):
+        # player's neutral turn
         cRoom = level[player.y][player.x]
         validchoices = player.getvalidchoices()
+        # dictionary for when the player specifies the item as a string
         itemdict = {
             "plank": items.sword,
             "potion": items.potionH,
@@ -254,7 +266,7 @@ class Player:
         for i in option:
             if i in validchoices[0]:
                 player.move(i)
-
+        # checks which of the arguments has been stated and executes it
         if "flip" in option and cRoom == rooms.switch:
             player.memory[0] = rooms.switchp(option,player.memory[0])
 
@@ -271,7 +283,7 @@ class Player:
             time.sleep(.67)
             print("THE CONTENTS OF YOUR INVENTORY")
             getinv(player.inventory)
-
+        # if a two-word argument was stated, looks also at the next argument given
         if "inspect" in option:
             for i in range(option.__len__()):
                 if option[i] == "inspect":
@@ -287,7 +299,7 @@ class Player:
             for i in range(option.__len__()):
                 if option[i] == "drink":
                     try:
-                        if option[i+1].lower() == "the":
+                        if option[i+1].lower() in ["the","a"]:
                             player.drink(itemdict[option[i+2]])
                         else:
                             player.drink(itemdict[option[i+1]])
@@ -331,6 +343,7 @@ class Player:
                         print("YOU CAN'T DO THAT")
 
     def inspect(self, item):
+        #prints item or room description
         item = item.lower()
         if item == "room":
             item = level[player.y][player.x]
@@ -348,15 +361,17 @@ class Player:
                 time.sleep(.67)
                 getinv(item.inventory)
         else:
+            # defines itemdict again. in a perfect world, this would only need to be done once.
             itemdict = {
                 "plank": items.sword,
                 "potion": items.potionH,
                 "rags": items.armour,
                 "sword": items.sword2,
                 "armour": items.armour2,
-                "torch": items.torch
+                "torch": items.torch,
+                "pendant": items.pendant
             }
-
+            time.sleep(.67)
             print(itemdict[item].desc)
 
 
@@ -373,6 +388,7 @@ class Player:
         print("SPEED:", player.speed)
 
     def upgrade(self):
+        # upgrades player's level and stats
         option = ""
         print("HEALTH RESTORED && INCREASED")
         while option not in ("DEFENSE","STRENGTH","SPEED","DEF","STR","SPD"):
@@ -390,29 +406,33 @@ class Player:
 
 
 def battle(player, enemy,level):
+    #combat between player and enemy
         time.sleep(.67)
         print("YOU HAVE ENCOUNTERED AN",enemy.name)
         time.sleep(.67)
         input("PREPARE FOR BATTLE")
         choices = ["INSPECT","SLASH","CHOP","LUNGE"]
         pHealth = player.health
+        # enemy health transfered to another variable else all future enemies of the same class will have 0 health
         eHealth = enemy.health
         while eHealth > 0 and pHealth > 0:
             turn = True
             while turn:
                 choice = ""
-                while choice not in choices:
+                while choice not in choices: # loops choice until a valid argument is given
                     print(choices)
                     time.sleep(.67)
                     choice = input("CHOOSE YOUR ACTION \n")
                     choice = choice.upper()
                 if choice == "INSPECT":
+                    # inspects enemy, shows their weakness
                     time.sleep(.67)
                     print(enemy.desc)
                     time.sleep(1)
                     print("WEAK TO", enemy.weakness)
                     time.sleep(.67)
                 if choice in ["SLASH","CHOP","LUNGE"]:
+                    # attacks the enemy, attacking with their weakness amplifies damage
                     multiplier = random.randint(80,120)/100
                     damage = player.strength*multiplier
                     if choice == enemy.weakness:
@@ -431,7 +451,8 @@ def battle(player, enemy,level):
                 time.sleep(.67)
                 print("---ENEMY TURN---")
                 hitRNG = random.randint(0,100)
-                if hitRNG < player.speed:
+                # adds a chance that the enemy misses their hit
+                if hitRNG > player.speed:
                     multiplier = random.randint(80, 120) / 100
                     damage = enemy.strength * multiplier
                     damage -= (player.defense/10)
@@ -448,10 +469,12 @@ def battle(player, enemy,level):
                 print("---YOUR TURN---")
                 time.sleep(.67)
         if pHealth <= 0:
+            # player dies
             time.sleep(1)
             print("YOU ARE DEAD")
             player.alive = False
         if eHealth <= 0:
+            # player wins and gets rewards
             time.sleep(1)
             print("VICTORY")
             potRNG = random.randint(0,100)
@@ -475,10 +498,12 @@ def battle(player, enemy,level):
                 print("YOU HAVE ", player.exp, "/", 45+(player.level*5), "EXP")
 
 def getinv(inventory):
+    # prints inventory
     for i in inventory:
         print(" *",i.name)
 
 def save(player):
+    # saves player game to external file
     with open('savefile.pickle', 'wb') as handle:
         pickle.dump(player,handle)
     time.sleep(1)
@@ -507,7 +532,7 @@ if choice == "1":
     time.sleep(1)
     print("YOUR CLOTHES ARE TATTERED")
     time.sleep(1)
-    print("YOU PICK OF A NEARBY PLANK, AND LIGHT YOUR ONLY TORCH")
+    print("YOU PICK UP A NEARBY PLANK, AND LIGHT YOUR ONLY TORCH")
     player = Player(100,100,11,12,10,1,0,[items.potionH,items.torch],[items.sword,items.armour],True,1,0,[0])
 elif choice == "2":
     try:
@@ -519,10 +544,7 @@ elif choice == "2":
         player = Player(100,100,11,12,10,1,0,[items.potionH,items.torch],[items.sword,items.armour],True,1,0,[0])
 elif choice == "9":
     quit()
+
+
 while player.alive:
     player.nturn()
-#    time.sleep(.67)
-
-#main()
-#player.attack(orc.name)
-#print(orc.desc)
